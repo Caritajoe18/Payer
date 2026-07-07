@@ -83,6 +83,7 @@ export const api = {
       customerName?: string;
       orderReference?: string;
       callbackUrl?: string;
+      accountId?: string;
     }) => request<{ checkoutLink: string; orderReference: string }>('/payments/checkout-order', { method: 'POST', body: data }),
   },
 
