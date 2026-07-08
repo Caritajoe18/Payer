@@ -11,16 +11,16 @@ type Category = "Electronics" | "Accessories" | "Lifestyle";
 const PRODUCTS: Product[] = [
   { id: "p1", name: "WH-1000XM5", brand: "Sony", price: 349,
     photo: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop&auto=format",
-    description: "Industry-leading noise cancellation. 30-hour battery life.", stock: 14 },
+    description: "Industry-leading noise cancellation. 30-hour battery life.", stock: 14, category: "Electronics" },
   { id: "p2", name: "AirPods Pro (2nd Gen)", brand: "Apple", price: 249,
     photo: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&h=600&fit=crop&auto=format",
-    description: "Adaptive transparency and immersive sound.", stock: 8 },
+    description: "Adaptive transparency and immersive sound.", stock: 8, category: "Electronics" },
   { id: "p3", name: "MX Master 3S", brand: "Logitech", price: 50,
     photo: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&h=600&fit=crop&auto=format",
-    description: "Precision controls and long battery life.", stock: 22 },
+    description: "Precision controls and long battery life.", stock: 22, category: "Accessories" },
   { id: "p4", name: "Classic Notebook Set", brand: "Moleskine", price: 28,
     photo: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&h=600&fit=crop&auto=format",
-    description: "A refined set for ideas, notes, and planning.", stock: 35 },
+    description: "A refined set for ideas, notes, and planning.", stock: 35, category: "Lifestyle" },
 ];
 
 const CATEGORIES: (Category | "All")[] = ["All", "Electronics", "Accessories", "Lifestyle"];

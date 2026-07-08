@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Link } from 'react-router';
-import { ArrowLeft, Search, RefreshCw, CloudDownload } from 'lucide-react';
+import { ArrowLeft, Search, RefreshCw, CloudDownload, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -30,6 +30,7 @@ export default function TransactionsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -44,10 +45,15 @@ export default function TransactionsPage() {
 
   async function syncFromNomba() {
     setSyncing(true);
+    setSyncMessage(null);
     try {
-      await api.transactions.syncFromNomba();
+      const result = await api.transactions.syncFromNomba({ scope: 'sub' });
       await load();
-    } catch { /* ignore */ }
+      setSyncMessage({ type: 'success', text: 'Transactions synced from Nomba successfully' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sync failed. Check your permissions.';
+      setSyncMessage({ type: 'error', text: msg });
+    }
     setSyncing(false);
   }
 
@@ -73,18 +79,50 @@ export default function TransactionsPage() {
               <p className="text-sm text-white/60">Transaction history</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={syncFromNomba} className="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" title="Sync from Nomba">
-              <CloudDownload size={16} className={syncing ? 'animate-bounce' : ''} />
-            </button>
-            <button onClick={load} className="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" title="Refresh">
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            </button>
-          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        {syncMessage && (
+          <div className={`mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm ${
+            syncMessage.type === 'success'
+              ? 'bg-green-400/10 text-green-400'
+              : 'bg-red-400/10 text-red-400'
+          }`}>
+            {syncMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            <span>{syncMessage.text}</span>
+            <button onClick={() => setSyncMessage(null)} className="ml-auto text-white/40 hover:text-white/70">&times;</button>
+          </div>
+        )}
+
+        <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-white/80">Nomba transaction sync</h2>
+              <p className="mt-0.5 text-xs text-white/40">
+                Pull the latest transactions from your Nomba account into your local records
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={syncFromNomba}
+                disabled={syncing}
+                className="inline-flex items-center gap-2 rounded-full bg-[#dfe66a] px-5 py-2 text-xs font-semibold text-[#111] transition hover:bg-[#c8cf4d] disabled:opacity-50"
+              >
+                <CloudDownload size={14} className={syncing ? 'animate-bounce' : ''} />
+                {syncing ? 'Syncing...' : 'Sync from Nomba'}
+              </button>
+              <button
+                onClick={load}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative max-w-xs">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35" />

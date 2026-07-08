@@ -96,7 +96,7 @@ export const api = {
       return request<unknown[]>(`/transactions?${q.toString()}`);
     },
     requery: (sessionId: string) => request<unknown>(`/requery/session/${sessionId}`),
-    syncFromNomba: (params?: { page?: number; limit?: number; from?: string; to?: string; type?: string; status?: string }) => {
+    syncFromNomba: (params?: { page?: number; limit?: number; from?: string; to?: string; type?: string; status?: string; scope?: string }) => {
       const q = new URLSearchParams();
       if (params?.page) q.set('page', String(params.page));
       if (params?.limit) q.set('limit', String(params.limit));
@@ -104,6 +104,7 @@ export const api = {
       if (params?.to) q.set('to', params.to);
       if (params?.type) q.set('type', params.type);
       if (params?.status) q.set('status', params.status);
+      if (params?.scope) q.set('scope', params.scope);
       return request<unknown>(`/transactions/sync?${q.toString()}`);
     },
   },
@@ -119,12 +120,12 @@ export const api = {
     bankLookup: (accountNumber: string, bankCode: string) =>
       request<{ accountName: string; accountNumber: string }>('/payroll/bank-lookup', { method: 'POST', body: { accountNumber, bankCode } }),
     fetchBanks: () => request<{ code: string; name: string }[]>('/payroll/banks'),
-    runPayroll: () => request<unknown>('/payroll/payroll/run', { method: 'POST' }),
+    runPayroll: (staffIds?: string[]) => request<unknown>('/payroll/payroll/run', { method: 'POST', body: staffIds ? { staffIds } : undefined }),
   },
 
   staff: {
     list: () => request<unknown[]>('/staff'),
-    create: (data: { name: string; accountNumber: string; bankCode: string; salary: number; email?: string }) =>
+    create: (data: { name: string; accountNumber: string; bankCode: string; bankName?: string; salary: number; email?: string }) =>
       request<unknown>('/staff', { method: 'POST', body: data }),
     update: (id: string, data: Record<string, unknown>) =>
       request<unknown>(`/staff/${id}`, { method: 'PUT', body: data }),
@@ -150,5 +151,9 @@ export const api = {
 
   products: {
     list: () => request<{ id: string; name: string; brand: string; price: number; photo: string; description: string; stock: number }[]>('/products'),
+  },
+
+  accounts: {
+    balance: () => request<{ amount: string; currency: string }>('/accounts/balance'),
   },
 };

@@ -3,6 +3,7 @@ const STORAGE_KEY = 'payer_cart';
 export interface Product {
   id: string; name: string; brand: string; price: number;
   photo: string; description: string; stock: number;
+  category?: string;
 }
 export interface CartItem { product: Product; qty: number }
 

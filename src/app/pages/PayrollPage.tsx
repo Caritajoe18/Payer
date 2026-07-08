@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Link } from 'react-router';
-import { ArrowLeft, Search, Plus, Trash2, Send, UserCheck } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Trash2, Send, UserCheck, CheckSquare, Square } from 'lucide-react';
 
 interface Staff {
   id: string;
@@ -24,10 +24,12 @@ export default function PayrollPage() {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [lookupResult, setLookupResult] = useState<{ accountName: string } | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState('');
 
-  const [form, setForm] = useState({ name: '', email: '', accountNumber: '', bankCode: '', salary: '' });
+  const [form, setForm] = useState({ name: '', email: '', accountNumber: '', bankCode: '', bankName: '', salary: '' });
+  const [manualBank, setManualBank] = useState(false);
 
   useEffect(() => {
     api.staff.list().then((d) => setStaff(d as Staff[])).catch(() => {});
@@ -51,12 +53,13 @@ export default function PayrollPage() {
         name: form.name,
         accountNumber: form.accountNumber,
         bankCode: form.bankCode,
+        bankName: form.bankName || undefined,
         salary: Number(form.salary),
         email: form.email || undefined,
       });
       setStaff((prev) => [...prev, s as Staff]);
       setShowAdd(false);
-      setForm({ name: '', email: '', accountNumber: '', bankCode: '', salary: '' });
+      setForm({ name: '', email: '', accountNumber: '', bankCode: '', bankName: '', salary: '' });
       setLookupResult(null);
     } catch { /* ignore */ }
   }
@@ -68,12 +71,31 @@ export default function PayrollPage() {
     } catch { /* ignore */ }
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === staff.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(staff.map((s) => s.id)));
+    }
+  }
+
   async function handleRunPayroll() {
     setRunning(true);
     setResult('');
+    const target = selected.size > 0 ? staff.filter((s) => selected.has(s.id)) : staff;
+    if (target.length === 0) { setResult('No staff selected'); setRunning(false); return; }
     try {
-      const res = await api.payroll.runPayroll();
-      setResult(`Payroll completed successfully`);
+      const res = await api.payroll.runPayroll(target.map((s) => s.id));
+      setResult(`Payroll sent to ${target.length} staff member${target.length > 1 ? 's' : ''}`);
+      setSelected(new Set());
     } catch (err: unknown) {
       setResult(err instanceof Error ? err.message : 'Payroll failed');
     }
@@ -120,11 +142,32 @@ export default function PayrollPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs text-white/50">Bank</label>
-                <select value={form.bankCode} onChange={(e) => { setForm({ ...form, bankCode: e.target.value }); setLookupResult(null); }}
-                  className="w-full rounded-xl border border-white/10 bg-[#0d0e12] px-3 py-2 text-sm outline-none focus:border-[#dfe66a]/50">
-                  <option value="">Select bank</option>
-                  {banks.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-                </select>
+                {banks.length > 0 && !manualBank ? (
+                  <select value={form.bankCode} onChange={(e) => { 
+                    if (e.target.value === '__manual__') { setManualBank(true); setForm({ ...form, bankCode: '', bankName: '' }); return; }
+                    setForm({ ...form, bankCode: e.target.value }); setLookupResult(null); 
+                  }}
+                    className="w-full rounded-xl border border-white/10 bg-[#0d0e12] px-3 py-2 text-sm outline-none focus:border-[#dfe66a]/50">
+                    <option value="">Select bank</option>
+                    {banks.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
+                    <option value="__manual__">Other (enter manually)</option>
+                  </select>
+                ) : (
+                  <div className="flex gap-2">
+                    <input value={form.bankCode} onChange={(e) => { setForm({ ...form, bankCode: e.target.value }); setLookupResult(null); }}
+                      placeholder="Bank code (e.g. 011)"
+                      className="w-1/3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-[#dfe66a]/50" />
+                    <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                      placeholder="Bank name (e.g. First Bank)"
+                      className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-[#dfe66a]/50" />
+                  </div>
+                )}
+                {banks.length > 0 && !manualBank && (
+                  <button onClick={() => setManualBank(true)} className="mt-1 text-xs text-white/40 hover:text-white/60">Or enter manually</button>
+                )}
+                {manualBank && banks.length > 0 && (
+                  <button onClick={() => setManualBank(false)} className="mt-1 text-xs text-white/40 hover:text-white/60">Use bank list</button>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs text-white/50">Account number</label>
@@ -157,6 +200,11 @@ export default function PayrollPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.02] text-left text-xs uppercase tracking-wider text-white/40">
+                  <th className="px-4 py-3 font-medium w-10">
+                    <button onClick={toggleAll} className="text-white/40 hover:text-white/70">
+                      {selected.size === staff.length ? <CheckSquare size={14} /> : <Square size={14} />}
+                    </button>
+                  </th>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Account</th>
                   <th className="px-4 py-3 font-medium">Bank</th>
@@ -165,11 +213,18 @@ export default function PayrollPage() {
                 </tr>
               </thead>
               <tbody>
-                {staff.map((s) => (
-                  <tr key={s.id} className="border-b border-white/5 transition hover:bg-white/[0.02]">
+                  {staff.map((s) => (
+                  <tr key={s.id} className={`border-b border-white/5 transition hover:bg-white/[0.02] ${selected.has(s.id) ? 'bg-[#dfe66a]/5' : ''}`}>
+                    <td className="px-4 py-3">
+                      <button onClick={() => toggleSelect(s.id)} className="text-white/40 hover:text-white/70">
+                        {selected.has(s.id) ? <CheckSquare size={14} /> : <Square size={14} />}
+                      </button>
+                    </td>
                     <td className="px-4 py-3 font-medium">{s.name}</td>
                     <td className="px-4 py-3 font-mono text-white/60">{s.accountNumber}</td>
-                    <td className="px-4 py-3 text-white/60">{s.bankName || s.bankCode}</td>
+                    <td className="px-4 py-3 text-white/60">
+                      {s.bankName ? <span>{s.bankName} <span className="text-white/30">({s.bankCode})</span></span> : s.bankCode}
+                    </td>
                     <td className="px-4 py-3 font-semibold">₦{Number(s.salary).toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <button onClick={() => handleDelete(s.id)} className="text-white/40 hover:text-red-400"><Trash2 size={14} /></button>
@@ -186,7 +241,7 @@ export default function PayrollPage() {
             <div>
               <h3 className="text-lg font-semibold">Run monthly payroll</h3>
               <p className="mt-1 text-sm text-white/50">
-                {staff.length} active staff · Total: ₦{staff.reduce((s, m) => s + Number(m.salary), 0).toLocaleString()}
+                {selected.size > 0 ? `${selected.size} selected · ` : ''}{staff.length} active staff · Total: ₦{staff.reduce((s, m) => s + Number(m.salary), 0).toLocaleString()}
               </p>
             </div>
             <button

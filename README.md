@@ -1,5 +1,7 @@
 # Payer: SME Financial Command Center & E-commerce Platform
 
+**Demo:** https://payer-paywell.vercel.app/login — login with `admin@example.com` / `payer`
+
 **Payer** is a unified e-commerce and treasury management solution designed specifically for small and medium-sized enterprises (SMEs). It bridges the gap between sales and operations by providing a seamless shopping experience for customers while empowering business owners with automated tools for payroll and utility management within a single protected dashboard.
 
 ## Project Description

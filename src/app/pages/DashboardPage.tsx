@@ -4,7 +4,7 @@ import { api } from '../../lib/api';
 import { useNavigate, Link } from 'react-router';
 import {
   Building2, CreditCard, TrendingUp, Users, Zap, ArrowRight,
-  ReceiptText, ShoppingCart, Wifi, Smartphone,
+  ReceiptText, ShoppingCart, Wifi, Smartphone, Eye, EyeOff,
 } from 'lucide-react';
 
 interface Transaction {
@@ -22,6 +22,15 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState({ revenue: 0, pending: 0, completed: 0 });
+  const [balance, setBalance] = useState<string | null>(null);
+  const [showBalance, setShowBalance] = useState(true);
+
+  useEffect(() => {
+    api.accounts.balance().then((d) => {
+      const amt = (d as { amount?: string }).amount;
+      if (amt) setBalance(amt);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.transactions.list({ page: 1 }).then((data) => {
@@ -73,7 +82,22 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-white/50">Welcome back, {user.name}</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="rounded-2xl border border-[#dfe66a]/20 bg-[#dfe66a]/5 p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-white/50">Account balance</p>
+              <button onClick={() => setShowBalance(!showBalance)} className="text-white/40 hover:text-white/70">
+                {showBalance ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+            <p className="mt-1 text-xl font-semibold">
+              {balance ? (
+                showBalance ? `₦${Number(balance).toLocaleString()}` : '****'
+              ) : (
+                <span className="text-white/30">—</span>
+              )}
+            </p>
+          </div>
           {[
             { label: 'Total revenue', value: `₦${stats.revenue.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
             { label: 'Pending', value: String(stats.pending), icon: ReceiptText, color: 'text-yellow-400' },

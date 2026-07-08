@@ -1,5 +1,18 @@
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router";
 import { AuthProvider, useAuth } from "../lib/auth";
+
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/payer';
+
+function KeepAlive() {
+  useEffect(() => {
+    const ping = () => fetch(`${BASE}/health`).catch(() => {});
+    ping();
+    const id = setInterval(ping, 10 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  return null;
+}
 import StorePage from "./pages/StorePage";
 import AboutPage from "./pages/AboutPage";
 import LoginPage from "./pages/LoginPage";
@@ -20,6 +33,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
+      <KeepAlive />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<StorePage />} />
