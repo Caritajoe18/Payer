@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useNavigate, Link } from 'react-router';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPw, setShowPw] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,14 +71,19 @@ export default function LoginPage() {
 
           <div>
             <label className="mb-2 block text-sm text-white/70">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-[#dfe66a]/50"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-sm text-white outline-none focus:border-[#dfe66a]/50"
+                placeholder="••••••••"
+                required
+              />
+              <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -97,6 +103,11 @@ export default function LoginPage() {
 
         <div className="mt-6 flex items-center justify-center gap-2 text-xs text-white/40">
           <ShieldCheck size={14} /> Secured login
+        </div>
+        <div className="mt-6 text-center">
+          <Link to="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 hover:bg-white/5 transition-colors">
+            <ArrowLeft size={16} /> Back to store
+          </Link>
         </div>
       </div>
     </div>
