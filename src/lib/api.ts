@@ -96,6 +96,16 @@ export const api = {
       return request<unknown[]>(`/transactions?${q.toString()}`);
     },
     requery: (sessionId: string) => request<unknown>(`/requery/session/${sessionId}`),
+    syncFromNomba: (params?: { page?: number; limit?: number; from?: string; to?: string; type?: string; status?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.page) q.set('page', String(params.page));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.from) q.set('from', params.from);
+      if (params?.to) q.set('to', params.to);
+      if (params?.type) q.set('type', params.type);
+      if (params?.status) q.set('status', params.status);
+      return request<unknown>(`/transactions/sync?${q.toString()}`);
+    },
   },
 
   payroll: {

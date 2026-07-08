@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Link } from 'react-router';
-import { ArrowLeft, Search, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Search, RefreshCw, CloudDownload } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -29,6 +29,7 @@ export default function TransactionsPage() {
   const [filter, setFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -39,6 +40,15 @@ export default function TransactionsPage() {
       );
     } catch { /* ignore */ }
     setLoading(false);
+  }
+
+  async function syncFromNomba() {
+    setSyncing(true);
+    try {
+      await api.transactions.syncFromNomba();
+      await load();
+    } catch { /* ignore */ }
+    setSyncing(false);
   }
 
   useEffect(() => { load(); }, []);
@@ -63,9 +73,14 @@ export default function TransactionsPage() {
               <p className="text-sm text-white/60">Transaction history</p>
             </div>
           </div>
-          <button onClick={load} className="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10">
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={syncFromNomba} className="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" title="Sync from Nomba">
+              <CloudDownload size={16} className={syncing ? 'animate-bounce' : ''} />
+            </button>
+            <button onClick={load} className="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" title="Refresh">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
       </header>
 

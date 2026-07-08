@@ -15,7 +15,7 @@ const PRODUCTS: Product[] = [
   { id: "p2", name: "AirPods Pro (2nd Gen)", brand: "Apple", price: 249,
     photo: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&h=600&fit=crop&auto=format",
     description: "Adaptive transparency and immersive sound.", stock: 8 },
-  { id: "p3", name: "MX Master 3S", brand: "Logitech", price: 99,
+  { id: "p3", name: "MX Master 3S", brand: "Logitech", price: 50,
     photo: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&h=600&fit=crop&auto=format",
     description: "Precision controls and long battery life.", stock: 22 },
   { id: "p4", name: "Classic Notebook Set", brand: "Moleskine", price: 28,
